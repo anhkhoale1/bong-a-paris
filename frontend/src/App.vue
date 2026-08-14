@@ -26,7 +26,7 @@ function signOut() {
   <RouterView v-if="route.meta.public" />
   <div v-else class="app-shell">
     <aside class="sidebar" :class="{ open: menuOpen }">
-      <div class="brand"><span>BP</span><div><strong>Bông à Paris</strong><small>Sales Manager</small></div></div>
+      <div class="brand"><span>BP</span><div><strong>Bống à Paris</strong><small>Sales Manager</small></div></div>
       <nav>
         <RouterLink v-for="link in links" :key="link.to" :to="link.to" :class="{ active: isActive(link.to) }" @click="menuOpen = false"><span>{{ link.icon }}</span>{{ link.label }}</RouterLink>
       </nav>
@@ -38,7 +38,7 @@ function signOut() {
     <button v-if="menuOpen" class="menu-backdrop" aria-label="Đóng menu" @click="menuOpen = false"></button>
 
     <div class="app-main">
-      <header class="mobile-header"><button class="menu-button" aria-label="Mở menu" @click="menuOpen = true">☰</button><strong>Bông à Paris</strong><RouterLink class="mobile-add" to="/orders/create">+</RouterLink></header>
+      <header class="mobile-header"><button class="menu-button" aria-label="Mở menu" @click="menuOpen = true">☰</button><strong>Bống à Paris</strong><RouterLink class="mobile-add" to="/orders/create">+</RouterLink></header>
       <main class="page-container"><RouterView /></main>
     </div>
     <AppToast />

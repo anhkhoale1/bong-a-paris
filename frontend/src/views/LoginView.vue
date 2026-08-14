@@ -32,7 +32,7 @@ async function submit() {
       <div class="login-brand"><span>BP</span></div>
       <p class="eyebrow">Không gian quản trị</p>
       <h1>Đăng nhập</h1>
-      <p class="login-intro">Theo dõi sản phẩm, đơn hàng và kết quả kinh doanh của Bông à Paris.</p>
+      <p class="login-intro">Theo dõi sản phẩm, đơn hàng và kết quả kinh doanh của Bống à Paris.</p>
 
       <form class="login-form" @submit.prevent="submit">
         <div v-if="error" class="error-panel" role="alert">{{ error }}</div>
