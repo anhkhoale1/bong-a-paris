@@ -1,0 +1,9 @@
+import { apiClient, queryString } from './apiClient'
+
+export const productService = {
+  list: params => apiClient(`/products${queryString(params)}`),
+  get: id => apiClient(`/products/${id}`),
+  create: payload => apiClient('/products', { method: 'POST', body: JSON.stringify(payload) }),
+  update: (id, payload) => apiClient(`/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  remove: id => apiClient(`/products/${id}`, { method: 'DELETE' })
+}
