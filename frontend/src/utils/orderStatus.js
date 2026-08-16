@@ -1,16 +1,14 @@
 export const ORDER_STATUSES = [
+  'PENDING_PURCHASE',
   'PURCHASED',
-  'SHIPPED_TO_VIETNAM',
-  'ARRIVED_IN_VIETNAM',
-  'OUT_FOR_DELIVERY',
+  'SHIPPED',
   'COMPLETED'
 ]
 
 export const ORDER_STATUS_LABELS = {
+  PENDING_PURCHASE: 'Chưa mua',
   PURCHASED: 'Đã mua',
-  SHIPPED_TO_VIETNAM: 'Đã gửi vận chuyển',
-  ARRIVED_IN_VIETNAM: 'Đã đến Việt Nam',
-  OUT_FOR_DELIVERY: 'Đang trên đường giao',
+  SHIPPED: 'Đã gửi vận chuyển',
   COMPLETED: 'Hoàn thành'
 }
 

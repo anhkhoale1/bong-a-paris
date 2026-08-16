@@ -20,7 +20,7 @@ const form = reactive({
   customerPhone: props.order?.customerPhone || '',
   customerAddress: props.order?.customerAddress || '',
   note: props.order?.note || '',
-  status: props.order?.status || 'PURCHASED',
+  status: props.order?.status || 'PENDING_PURCHASE',
   items: (props.order?.items || []).map(item => ({ ...item }))
 })
 
@@ -155,12 +155,12 @@ onMounted(async () => {
               </label>
               <label class="field">
                 <span>Giá nhập thực tế <b>*</b></span>
-                <input v-model.number="item.purchasePrice" type="number" min="0" step="1000" required />
-              </label>
-              <label class="field">
-                <span>Giá bán thực tế <b>*</b></span>
-                <input v-model.number="item.salePrice" type="number" min="0" step="1000" required />
-              </label>
+                 <input v-model.number="item.purchasePrice" type="number" min="0" step="1" readonly required />
+               </label>
+               <label class="field">
+                 <span>Giá bán thực tế <b>*</b></span>
+                 <input v-model.number="item.salePrice" type="number" min="0" step="1" readonly required />
+               </label>
               <label class="field">
                 <span>Nơi nhập thực tế</span>
                 <input v-model.trim="item.purchaseLocation" />

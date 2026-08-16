@@ -114,7 +114,7 @@ export class OrderService {
     if (errors.length) throw validationError(errors)
 
     const now = new Date().toISOString()
-    const status = payload.status || current.status || 'PURCHASED'
+    const status = payload.status || current.status || 'PENDING_PURCHASE'
     const deliveryFee = payload.deliveryFee === undefined
       ? Number(current.deliveryFee || 0)
       : Number(payload.deliveryFee)
@@ -145,7 +145,7 @@ export class OrderService {
 
   async create(payload) {
     payload = payload && typeof payload === 'object' ? payload : {}
-    const order = await this.normalize({ ...payload, status: payload.status || 'PURCHASED' })
+    const order = await this.normalize({ ...payload, status: payload.status || 'PENDING_PURCHASE' })
     return this.orderRepository.create(order)
   }
 

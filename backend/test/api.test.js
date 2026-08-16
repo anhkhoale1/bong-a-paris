@@ -87,7 +87,7 @@ describe('Sales Manager API', () => {
       .expect(201)
 
     expect(response.body.success).toBe(true)
-    expect(response.body.data.status).toBe('PURCHASED')
+    expect(response.body.data.status).toBe('PENDING_PURCHASE')
     expect(response.body.data.items[0]).toMatchObject({
       lineCost: 800000,
       lineRevenue: 1300000,
@@ -150,7 +150,7 @@ describe('Sales Manager API', () => {
 
     const reopened = await authenticate(request(server)
       .patch(`/api/orders/${id}/status`)
-      .send({ status: 'OUT_FOR_DELIVERY' }))
+      .send({ status: 'SHIPPED' }))
       .expect(200)
     expect(reopened.body.data.completedAt).toBeNull()
   })

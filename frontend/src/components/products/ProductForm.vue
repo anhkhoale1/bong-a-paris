@@ -81,13 +81,13 @@ function submit() {
 
       <label class="field">
         <span>Giá nhập mặc định <b>*</b></span>
-        <input v-model.number="form.defaultPurchasePrice" type="number" min="0" step="1000" />
+        <input v-model.number="form.defaultPurchasePrice" type="number" min="0" step="1" />
         <small v-if="errors.defaultPurchasePrice" class="field__error">{{ errors.defaultPurchasePrice }}</small>
       </label>
 
       <label class="field">
         <span>Giá bán mặc định <b>*</b></span>
-        <input v-model.number="form.defaultSalePrice" type="number" min="0" step="1000" />
+        <input v-model.number="form.defaultSalePrice" type="number" min="0" step="1" />
         <small v-if="errors.defaultSalePrice" class="field__error">{{ errors.defaultSalePrice }}</small>
       </label>
 

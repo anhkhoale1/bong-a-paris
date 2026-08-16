@@ -42,7 +42,7 @@ onMounted(loadOrder)
 </script>
 
 <template>
-  <div class="page-heading"><div><p class="eyebrow">Đơn hàng</p><h1>Sửa {{ route.params.id }}</h1><p>Cập nhật khách hàng, sản phẩm và giá thực tế.</p></div></div>
+  <div class="page-heading"><div><p class="eyebrow">Đơn hàng</p><h1>Sửa {{ route.params.id }}</h1><p>Cập nhật khách hàng, sản phẩm và xem giá mặc định.</p></div></div>
   <LoadingState v-if="loading" />
   <div v-else-if="error && !order" class="error-panel">{{ error }}</div>
   <template v-else>
