@@ -1,5 +1,6 @@
 const mapProduct = row => row && ({
   id: row.id,
+  productCategoryId: row.product_category_id,
   name: row.name,
   description: row.description,
   defaultPurchasePrice: row.default_purchase_price,
@@ -11,7 +12,7 @@ const mapProduct = row => row && ({
 })
 
 const columns = `
-  id, name, description, default_purchase_price, default_sale_price,
+  id, product_category_id, name, description, default_purchase_price, default_sale_price,
   purchase_location, image_url, created_at, updated_at
 `
 
@@ -33,14 +34,14 @@ export class PostgresProductRepository {
   async create(product) {
     const result = await this.pool.query(`
       INSERT INTO products (
-        id, name, description, default_purchase_price, default_sale_price,
+        id, product_category_id, name, description, default_purchase_price, default_sale_price,
         purchase_location, image_url, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING ${columns}
     `, [
-      product.id, product.name, product.description, product.defaultPurchasePrice,
-      product.defaultSalePrice, product.purchaseLocation, product.imageUrl,
-      product.createdAt, product.updatedAt
+      product.id, product.productCategoryId, product.name, product.description,
+      product.defaultPurchasePrice, product.defaultSalePrice, product.purchaseLocation,
+      product.imageUrl, product.createdAt, product.updatedAt
     ])
     return mapProduct(result.rows[0])
   }
@@ -48,18 +49,20 @@ export class PostgresProductRepository {
   async update(id, product) {
     const result = await this.pool.query(`
       UPDATE products SET
-        name = $2,
-        description = $3,
-        default_purchase_price = $4,
-        default_sale_price = $5,
-        purchase_location = $6,
-        image_url = $7,
-        updated_at = $8
+        product_category_id = $2,
+        name = $3,
+        description = $4,
+        default_purchase_price = $5,
+        default_sale_price = $6,
+        purchase_location = $7,
+        image_url = $8,
+        updated_at = $9
       WHERE id = $1
       RETURNING ${columns}
     `, [
-      id, product.name, product.description, product.defaultPurchasePrice,
-      product.defaultSalePrice, product.purchaseLocation, product.imageUrl, product.updatedAt
+      id, product.productCategoryId, product.name, product.description,
+      product.defaultPurchasePrice, product.defaultSalePrice, product.purchaseLocation,
+      product.imageUrl, product.updatedAt
     ])
     return mapProduct(result.rows[0]) || null
   }
@@ -69,4 +72,3 @@ export class PostgresProductRepository {
     return result.rowCount > 0
   }
 }
-

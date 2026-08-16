@@ -18,10 +18,14 @@ const loginLimiter = rateLimit({
   message: { success: false, message: 'Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau.', errors: [] }
 })
 
-export function createAuthRoutes(controller, authenticate) {
+export function createAuthRoutes(controller, authenticate, { enableLoginRateLimit = true } = {}) {
   const router = Router()
-  router.post('/login', loginLimiter, validateLogin, asyncHandler(controller.login))
+  router.post(
+    '/login',
+    ...(enableLoginRateLimit ? [loginLimiter] : []),
+    validateLogin,
+    asyncHandler(controller.login)
+  )
   router.get('/me', authenticate, asyncHandler(controller.me))
   return router
 }
-

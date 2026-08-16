@@ -1,5 +1,5 @@
 const orderColumns = `
-  id, customer_name, customer_phone, customer_address, note, status,
+  id, customer_name, customer_phone, customer_address, note, delivery_fee, status,
   total_revenue, total_cost, total_profit, created_at, updated_at, completed_at
 `
 
@@ -27,6 +27,7 @@ function mapOrder(row, items = []) {
     customerPhone: row.customer_phone,
     customerAddress: row.customer_address,
     note: row.note,
+    deliveryFee: row.delivery_fee,
     status: row.status,
     items,
     totalRevenue: row.total_revenue,
@@ -56,13 +57,13 @@ async function findItems(client, orderIds) {
 async function insertOrder(client, order) {
   await client.query(`
     INSERT INTO orders (
-      id, customer_name, customer_phone, customer_address, note, status,
+      id, customer_name, customer_phone, customer_address, note, delivery_fee, status,
       total_revenue, total_cost, total_profit, created_at, updated_at, completed_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
   `, [
     order.id, order.customerName, order.customerPhone, order.customerAddress,
-    order.note, order.status, order.totalRevenue, order.totalCost, order.totalProfit,
-    order.createdAt, order.updatedAt, order.completedAt
+    order.note, order.deliveryFee, order.status, order.totalRevenue, order.totalCost,
+    order.totalProfit, order.createdAt, order.updatedAt, order.completedAt
   ])
 }
 
@@ -125,17 +126,18 @@ export class PostgresOrderRepository {
           customer_phone = $3,
           customer_address = $4,
           note = $5,
-          status = $6,
-          total_revenue = $7,
-          total_cost = $8,
-          total_profit = $9,
-          updated_at = $10,
-          completed_at = $11
+          delivery_fee = $6,
+          status = $7,
+          total_revenue = $8,
+          total_cost = $9,
+          total_profit = $10,
+          updated_at = $11,
+          completed_at = $12
         WHERE id = $1
       `, [
         id, order.customerName, order.customerPhone, order.customerAddress,
-        order.note, order.status, order.totalRevenue, order.totalCost,
-        order.totalProfit, order.updatedAt, order.completedAt
+        order.note, order.deliveryFee, order.status, order.totalRevenue,
+        order.totalCost, order.totalProfit, order.updatedAt, order.completedAt
       ])
       if (!result.rowCount) {
         await client.query('ROLLBACK')
@@ -158,4 +160,3 @@ export class PostgresOrderRepository {
     return result.rowCount > 0
   }
 }
-

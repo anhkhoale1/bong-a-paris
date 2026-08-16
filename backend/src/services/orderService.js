@@ -19,6 +19,12 @@ function basicOrderErrors(input) {
   if (payload.status !== undefined && !isValidOrderStatus(payload.status)) {
     errors.push({ field: 'status', message: 'Trạng thái đơn hàng không hợp lệ' })
   }
+  if (payload.deliveryFee !== undefined) {
+    const deliveryFee = Number(payload.deliveryFee)
+    if (!Number.isFinite(deliveryFee) || deliveryFee < 0) {
+      errors.push({ field: 'deliveryFee', message: 'Phí giao hàng phải là số lớn hơn hoặc bằng 0' })
+    }
+  }
   return errors
 }
 
@@ -35,9 +41,6 @@ function itemErrors(input, index) {
     if (!Number.isFinite(value) || value < 0) {
       errors.push({ field: `${prefix}.${field}`, message: 'Giá phải là số lớn hơn hoặc bằng 0' })
     }
-  }
-  if (!String(item.purchaseLocation || '').trim()) {
-    errors.push({ field: `${prefix}.purchaseLocation`, message: 'Nơi nhập sản phẩm không được để trống' })
   }
   return errors
 }
@@ -102,7 +105,7 @@ export class OrderService {
         quantity,
         purchasePrice,
         salePrice,
-        purchaseLocation: String(item.purchaseLocation).trim(),
+        purchaseLocation: String(item.purchaseLocation || '').trim(),
         lineCost,
         lineRevenue,
         lineProfit: lineRevenue - lineCost
@@ -113,7 +116,11 @@ export class OrderService {
 
     const now = new Date().toISOString()
     const status = payload.status || current.status || 'PURCHASED'
-    const totalCost = normalizedItems.reduce((sum, item) => sum + item.lineCost, 0)
+    const deliveryFee = payload.deliveryFee === undefined
+      ? Number(current.deliveryFee || 0)
+      : Number(payload.deliveryFee)
+    const productCost = normalizedItems.reduce((sum, item) => sum + item.lineCost, 0)
+    const totalCost = productCost + deliveryFee
     const totalRevenue = normalizedItems.reduce((sum, item) => sum + item.lineRevenue, 0)
     const completedAt = status === 'COMPLETED'
       ? current.status === 'COMPLETED' && current.completedAt ? current.completedAt : now
@@ -125,6 +132,7 @@ export class OrderService {
       customerPhone: String(payload.customerPhone || '').trim(),
       customerAddress: String(payload.customerAddress).trim(),
       note: String(payload.note || '').trim(),
+      deliveryFee,
       status,
       items: normalizedItems,
       totalRevenue,

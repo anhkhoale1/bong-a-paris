@@ -11,6 +11,7 @@ const validOrder = overrides => ({
   customerPhone: '0900000000',
   customerAddress: 'Quận 1, TP. Hồ Chí Minh',
   note: 'Đơn kiểm thử',
+  deliveryFee: 0,
   items: [
     {
       productId: 'PRD-001',
@@ -81,7 +82,7 @@ describe('Sales Manager API', () => {
   it('tạo đơn và tự tính lại tổng vốn, doanh thu, lợi nhuận', async () => {
     const response = await authenticate(request(server)
       .post('/api/orders')
-      .send(validOrder({ totalCost: 1, totalRevenue: 1, totalProfit: 1 })))
+      .send(validOrder({ deliveryFee: 50000, totalCost: 1, totalRevenue: 1, totalProfit: 1 })))
       .expect(201)
 
     expect(response.body.success).toBe(true)
@@ -92,10 +93,29 @@ describe('Sales Manager API', () => {
       lineProfit: 500000
     })
     expect(response.body.data).toMatchObject({
-      totalCost: 800000,
+      deliveryFee: 50000,
+      totalCost: 850000,
       totalRevenue: 1300000,
-      totalProfit: 500000
+      totalProfit: 450000
     })
+  })
+
+  it('từ chối phí giao hàng âm', async () => {
+    const response = await authenticate(request(server)
+      .post('/api/orders')
+      .send(validOrder({ deliveryFee: -1 })))
+      .expect(400)
+
+    expect(response.body.errors).toContainEqual(expect.objectContaining({ field: 'deliveryFee' }))
+  })
+
+  it('cho phép tạo đơn khi không có nơi nhập thực tế', async () => {
+    const response = await authenticate(request(server)
+      .post('/api/orders')
+      .send(validOrder({ items: [{ ...validOrder().items[0], purchaseLocation: '' }] })))
+      .expect(201)
+
+    expect(response.body.data.items[0].purchaseLocation).toBe('')
   })
 
   it('từ chối số lượng không phải số nguyên dương', async () => {

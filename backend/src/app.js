@@ -44,7 +44,9 @@ export function createApp({ pool, dataDirectory, seedData, authConfig } = {}) {
   app.get('/api/health', (_req, res) => {
     res.json({ success: true, message: 'Backend đang hoạt động', data: { status: 'ok' } })
   })
-  app.use('/api/auth', createAuthRoutes(createAuthController(authService), authenticate))
+  app.use('/api/auth', createAuthRoutes(createAuthController(authService), authenticate, {
+    enableLoginRateLimit: process.env.NODE_ENV !== 'test'
+  }))
   app.use('/api', authenticate)
   app.use('/api/products', createProductRoutes(createProductController(productService)))
   app.use('/api/orders', createOrderRoutes(createOrderController(orderService)))

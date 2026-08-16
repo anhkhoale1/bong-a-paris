@@ -4,6 +4,9 @@ import { AppError, validationError } from '../utils/AppError.js'
 function validateProduct(input) {
   const payload = input && typeof input === 'object' ? input : {}
   const errors = []
+  if (payload.productCategoryId !== undefined && payload.productCategoryId !== null && !String(payload.productCategoryId).trim()) {
+    errors.push({ field: 'productCategoryId', message: 'Mã phân loại mặt hàng không hợp lệ' })
+  }
   if (!String(payload.name || '').trim()) {
     errors.push({ field: 'name', message: 'Tên sản phẩm không được để trống' })
   }
@@ -22,6 +25,9 @@ function normalizeProduct(input, current = {}) {
   const now = new Date().toISOString()
   return {
     id: current.id || `PRD-${randomUUID().slice(0, 8).toUpperCase()}`,
+    productCategoryId: payload.productCategoryId === undefined
+      ? (current.productCategoryId || null)
+      : (String(payload.productCategoryId || '').trim() || null),
     name: String(payload.name).trim(),
     description: String(payload.description || '').trim(),
     defaultPurchasePrice: Number(payload.defaultPurchasePrice),
