@@ -6,14 +6,14 @@ import { useNotification } from '../composables/useNotification'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import EmptyState from '../components/common/EmptyState.vue'
 import LoadingState from '../components/common/LoadingState.vue'
-import ProductImage from '../components/common/ProductImage.vue'
 
 const products = ref([])
+const categories = ref([])
 const loading = ref(true)
 const error = ref('')
 const deleting = ref(false)
 const selectedProduct = ref(null)
-const filters = reactive({ search: '', purchaseLocation: '' })
+const filters = reactive({ search: '', purchaseLocation: '', productCategoryName: '' })
 const { notify } = useNotification()
 
 async function loadProducts() {
@@ -26,6 +26,10 @@ async function loadProducts() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadCategories() {
+  categories.value = await productService.listCategories()
 }
 
 async function removeProduct() {
@@ -43,11 +47,13 @@ async function removeProduct() {
 }
 
 function clearFilters() {
-  Object.assign(filters, { search: '', purchaseLocation: '' })
+  Object.assign(filters, { search: '', purchaseLocation: '', productCategoryName: '' })
   loadProducts()
 }
 
-onMounted(loadProducts)
+onMounted(async () => {
+  await Promise.all([loadProducts(), loadCategories().catch(() => {})])
+})
 </script>
 
 <template>
@@ -57,7 +63,8 @@ onMounted(loadProducts)
   </div>
 
   <form class="panel filters" @submit.prevent="loadProducts">
-    <label class="field"><span>Tìm theo tên</span><input v-model.trim="filters.search" placeholder="Nhập tên sản phẩm" /></label>
+    <label class="field"><span>Tìm theo tên</span><input v-model.trim="filters.search" placeholder="Không dấu, viết tắt đều được" /></label>
+    <label class="field"><span>Phân loại</span><select v-model="filters.productCategoryName"><option value="">Tất cả</option><option v-for="category in categories" :key="category.id" :value="category.name">{{ category.name }}</option></select></label>
     <label class="field"><span>Nơi mua</span><input v-model.trim="filters.purchaseLocation" placeholder="Taobao, 1688..." /></label>
     <button class="button">Lọc dữ liệu</button>
     <button type="button" class="button button--ghost" @click="clearFilters">Xóa bộ lọc</button>
@@ -71,11 +78,11 @@ onMounted(loadProducts)
   <section v-else class="panel table-panel">
     <div class="table-wrap desktop-only">
       <table>
-        <thead><tr><th>Ảnh</th><th>Sản phẩm</th><th>Giá nhập</th><th>Giá bán</th><th>Lợi nhuận dự kiến</th><th>Nơi mua</th><th>Hành động</th></tr></thead>
+        <thead><tr><th>Sản phẩm</th><th>Phân loại</th><th>Giá nhập</th><th>Giá bán</th><th>Lợi nhuận dự kiến</th><th>Nơi mua</th><th>Hành động</th></tr></thead>
         <tbody>
           <tr v-for="product in products" :key="product.id">
-            <td><ProductImage :src="product.imageUrl" :alt="product.name" /></td>
             <td><strong>{{ product.name }}</strong><small class="muted">{{ product.description || 'Không có mô tả' }}</small></td>
+            <td>{{ product.productCategoryName || 'Chưa phân loại' }}</td>
             <td>{{ formatCurrency(product.defaultPurchasePrice) }}</td>
             <td>{{ formatCurrency(product.defaultSalePrice) }}</td>
             <td><strong class="profit-text">{{ formatCurrency(product.defaultSalePrice - product.defaultPurchasePrice) }}</strong></td>
@@ -88,8 +95,7 @@ onMounted(loadProducts)
 
     <div class="mobile-cards mobile-only">
       <article v-for="product in products" :key="product.id" class="mobile-card product-card">
-        <ProductImage :src="product.imageUrl" :alt="product.name" />
-        <div><h3>{{ product.name }}</h3><p>{{ product.purchaseLocation || 'Chưa có nơi mua' }}</p></div>
+        <div><h3>{{ product.name }}</h3><p>{{ product.productCategoryName || 'Chưa phân loại' }}</p><p>{{ product.purchaseLocation || 'Chưa có nơi mua' }}</p></div>
         <dl><div><dt>Giá nhập</dt><dd>{{ formatCurrency(product.defaultPurchasePrice) }}</dd></div><div><dt>Giá bán</dt><dd>{{ formatCurrency(product.defaultSalePrice) }}</dd></div><div><dt>Lợi nhuận</dt><dd class="profit-text">{{ formatCurrency(product.defaultSalePrice - product.defaultPurchasePrice) }}</dd></div></dl>
         <div class="row-actions"><RouterLink class="button button--ghost" :to="`/products/${product.id}/edit`">Sửa</RouterLink><button class="button button--danger" @click="selectedProduct = product">Xóa</button></div>
       </article>

@@ -1,5 +1,9 @@
 export function createProductController(productService) {
   return {
+    listCategories: async (_req, res) => {
+      const categories = await productService.listCategories()
+      res.json({ success: true, message: 'Lấy danh sách phân loại thành công', data: categories })
+    },
     list: async (req, res) => {
       const products = await productService.list(req.query)
       res.json({ success: true, message: 'Lấy danh sách sản phẩm thành công', data: products })

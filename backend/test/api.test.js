@@ -39,12 +39,13 @@ describe('Sales Manager API', () => {
       seedData: {
         products: [{
           id: 'PRD-001',
+          productCategoryId: 'CAT-001',
+          productCategoryName: 'Skincare',
           name: 'Sản phẩm kiểm thử',
           description: '',
           defaultPurchasePrice: 400000,
           defaultSalePrice: 650000,
           purchaseLocation: 'Quảng Châu, Trung Quốc',
-          imageUrl: '',
           createdAt: '2026-01-01T00:00:00.000Z',
           updatedAt: '2026-01-01T00:00:00.000Z'
         }],
@@ -156,15 +157,16 @@ describe('Sales Manager API', () => {
 
   it('tạo và cập nhật sản phẩm', async () => {
     const payload = {
+      productCategoryName: 'Phụ kiện',
       name: 'Kính mát nữ',
       description: 'Kính chống tia UV',
       defaultPurchasePrice: 120000,
       defaultSalePrice: 250000,
-      purchaseLocation: 'Chợ đầu mối',
-      imageUrl: ''
+      purchaseLocation: 'Chợ đầu mối'
     }
     const created = await authenticate(request(server).post('/api/products').send(payload)).expect(201)
     expect(created.body.data.name).toBe(payload.name)
+    expect(created.body.data.productCategoryName).toBe(payload.productCategoryName)
 
     const updated = await authenticate(request(server)
       .put(`/api/products/${created.body.data.id}`)
@@ -174,14 +176,58 @@ describe('Sales Manager API', () => {
     expect(new Date(updated.body.data.updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(created.body.data.updatedAt).getTime())
   })
 
+  it('liệt kê và lọc sản phẩm theo phân loại', async () => {
+    await authenticate(request(server).post('/api/products').send({
+      productCategoryName: 'Kem chống nắng',
+      name: 'La Roche-Posay Anthelios',
+      description: '',
+      defaultPurchasePrice: 300000,
+      defaultSalePrice: 450000,
+      purchaseLocation: 'Paris'
+    })).expect(201)
+
+    const categories = await authenticate(request(server).get('/api/products/categories')).expect(200)
+    expect(categories.body.data).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Skincare' }),
+      expect.objectContaining({ name: 'Kem chống nắng' })
+    ]))
+
+    const filtered = await authenticate(request(server)
+      .get('/api/products?productCategoryName=Kem chống nắng'))
+      .expect(200)
+    expect(filtered.body.data).toHaveLength(1)
+    expect(filtered.body.data[0].productCategoryName).toBe('Kem chống nắng')
+  })
+
+  it('tìm sản phẩm không dấu và viết tắt', async () => {
+    await authenticate(request(server).post('/api/products').send({
+      productCategoryName: 'Kem chống nắng',
+      name: 'KCN La Roche-Posay xanh lá',
+      description: '',
+      defaultPurchasePrice: 320000,
+      defaultSalePrice: 390000,
+      purchaseLocation: 'Pháp'
+    })).expect(201)
+
+    const noAccent = await authenticate(request(server).get('/api/products?search=xanh la')).expect(200)
+    expect(noAccent.body.data).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'KCN La Roche-Posay xanh lá' })
+    ]))
+
+    const abbreviation = await authenticate(request(server).get('/api/products?search=lrp xanh')).expect(200)
+    expect(abbreviation.body.data).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'KCN La Roche-Posay xanh lá' })
+    ]))
+  })
+
   it('đọc lại dữ liệu đã ghi khi khởi tạo ứng dụng mới', async () => {
     const payload = {
+      productCategoryName: 'Gia dụng',
       name: 'Sản phẩm lưu bền vững',
       description: '',
       defaultPurchasePrice: 100000,
       defaultSalePrice: 180000,
-      purchaseLocation: 'Nhà cung cấp nội địa',
-      imageUrl: ''
+      purchaseLocation: 'Nhà cung cấp nội địa'
     }
     const created = await authenticate(request(server).post('/api/products').send(payload)).expect(201)
 

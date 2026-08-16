@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { productService } from '../../services/productService'
 
 const props = defineProps({
   product: { type: Object, default: null },
@@ -9,28 +10,38 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'cancel'])
 
 const form = reactive({
+  productCategoryName: '',
   name: '',
   description: '',
   defaultPurchasePrice: 0,
   defaultSalePrice: 0,
-  purchaseLocation: '',
-  imageUrl: ''
+  purchaseLocation: ''
 })
 const errors = reactive({})
+const categories = ref([])
 
 watch(() => props.product, product => {
   Object.assign(form, {
+    productCategoryName: product?.productCategoryName || '',
     name: product?.name || '',
     description: product?.description || '',
     defaultPurchasePrice: product?.defaultPurchasePrice ?? 0,
     defaultSalePrice: product?.defaultSalePrice ?? 0,
-    purchaseLocation: product?.purchaseLocation || '',
-    imageUrl: product?.imageUrl || ''
+    purchaseLocation: product?.purchaseLocation || ''
   })
 }, { immediate: true })
 
+onMounted(async () => {
+  try {
+    categories.value = await productService.listCategories()
+  } catch {
+    categories.value = []
+  }
+})
+
 function validate() {
   Object.keys(errors).forEach(key => delete errors[key])
+  if (!form.productCategoryName.trim()) errors.productCategoryName = 'Phân loại mặt hàng không được để trống.'
   if (!form.name.trim()) errors.name = 'Tên sản phẩm không được để trống.'
   if (!Number.isFinite(Number(form.defaultPurchasePrice)) || Number(form.defaultPurchasePrice) < 0) errors.defaultPurchasePrice = 'Giá nhập phải lớn hơn hoặc bằng 0.'
   if (!Number.isFinite(Number(form.defaultSalePrice)) || Number(form.defaultSalePrice) < 0) errors.defaultSalePrice = 'Giá bán phải lớn hơn hoặc bằng 0.'
@@ -50,6 +61,13 @@ function submit() {
 <template>
   <form class="panel form" @submit.prevent="submit">
     <div class="form-grid">
+      <label class="field">
+        <span>Phân loại mặt hàng <b>*</b></span>
+        <input v-model.trim="form.productCategoryName" list="product-categories" :class="{ invalid: errors.productCategoryName }" placeholder="Ví dụ: Kem chống nắng" />
+        <datalist id="product-categories"><option v-for="category in categories" :key="category.id" :value="category.name" /></datalist>
+        <small v-if="errors.productCategoryName" class="field__error">{{ errors.productCategoryName }}</small>
+      </label>
+
       <label class="field field--wide">
         <span>Tên sản phẩm <b>*</b></span>
         <input v-model.trim="form.name" :class="{ invalid: errors.name }" placeholder="Ví dụ: Túi xách nữ" />
@@ -76,11 +94,6 @@ function submit() {
       <label class="field">
         <span>Nơi mua / nhà cung cấp</span>
         <input v-model.trim="form.purchaseLocation" placeholder="Ví dụ: Taobao" />
-      </label>
-
-      <label class="field">
-        <span>URL ảnh sản phẩm</span>
-        <input v-model.trim="form.imageUrl" type="url" placeholder="https://..." />
       </label>
     </div>
 

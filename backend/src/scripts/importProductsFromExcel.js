@@ -133,8 +133,7 @@ function mapProducts(headers, dataRows) {
         description: '',
         defaultPurchasePrice,
         defaultSalePrice,
-        purchaseLocation,
-        imageUrl: ''
+        purchaseLocation
       })
     }
   }
@@ -225,8 +224,7 @@ async function writeToDatabase(products, categoryNames) {
                default_purchase_price = $5,
                default_sale_price = $6,
                purchase_location = $7,
-               image_url = $8,
-               updated_at = $9
+               updated_at = $8
            WHERE id = $1`,
           [
             existing.rows[0].id,
@@ -236,7 +234,6 @@ async function writeToDatabase(products, categoryNames) {
             product.defaultPurchasePrice,
             product.defaultSalePrice,
             product.purchaseLocation,
-            product.imageUrl,
             now
           ]
         )
@@ -246,8 +243,8 @@ async function writeToDatabase(products, categoryNames) {
       await client.query(
         `INSERT INTO products (
           id, product_category_id, name, description, default_purchase_price,
-          default_sale_price, purchase_location, image_url, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          default_sale_price, purchase_location, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           `PRD-${randomUUID().slice(0, 8).toUpperCase()}`,
           productCategoryId,
@@ -256,7 +253,6 @@ async function writeToDatabase(products, categoryNames) {
           product.defaultPurchasePrice,
           product.defaultSalePrice,
           product.purchaseLocation,
-          product.imageUrl,
           now,
           now
         ]

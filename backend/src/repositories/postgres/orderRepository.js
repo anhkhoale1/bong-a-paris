@@ -8,7 +8,6 @@ function mapItem(row) {
     id: row.id,
     productId: row.product_id,
     productName: row.product_name,
-    productImageUrl: row.product_image_url,
     quantity: row.quantity,
     purchasePrice: row.purchase_price,
     salePrice: row.sale_price,
@@ -71,11 +70,11 @@ async function insertItems(client, order) {
   for (const item of order.items) {
     await client.query(`
       INSERT INTO order_items (
-        id, order_id, product_id, product_name, product_image_url, quantity,
+        id, order_id, product_id, product_name, quantity,
         purchase_price, sale_price, purchase_location, line_cost, line_revenue, line_profit
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `, [
-      item.id, order.id, item.productId, item.productName, item.productImageUrl,
+      item.id, order.id, item.productId, item.productName,
       item.quantity, item.purchasePrice, item.salePrice, item.purchaseLocation,
       item.lineCost, item.lineRevenue, item.lineProfit
     ])

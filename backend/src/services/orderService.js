@@ -101,7 +101,6 @@ export class OrderService {
         id: item.id || makeId('ITEM'),
         productId: product.id,
         productName: product.name,
-        productImageUrl: product.imageUrl,
         quantity,
         purchasePrice,
         salePrice,

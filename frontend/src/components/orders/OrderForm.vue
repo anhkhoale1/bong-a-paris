@@ -2,7 +2,6 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { productService } from '../../services/productService'
 import { formatCurrency } from '../../utils/currency'
-import ProductImage from '../common/ProductImage.vue'
 import LoadingState from '../common/LoadingState.vue'
 
 const props = defineProps({
@@ -30,7 +29,7 @@ const totalRevenue = computed(() => form.items.reduce((sum, item) => sum + (Numb
 const totalProfit = computed(() => totalRevenue.value - totalCost.value)
 
 function blankItem() {
-  return { productId: '', quantity: 1, purchasePrice: 0, salePrice: 0, purchaseLocation: '', productName: '', productImageUrl: '' }
+  return { productId: '', quantity: 1, purchasePrice: 0, salePrice: 0, purchaseLocation: '', productName: '' }
 }
 
 function addItem() {
@@ -46,7 +45,6 @@ function selectProduct(item) {
   if (!product) return
   Object.assign(item, {
     productName: product.name,
-    productImageUrl: product.imageUrl,
     purchasePrice: product.defaultPurchasePrice,
     salePrice: product.defaultSalePrice,
     purchaseLocation: product.purchaseLocation
@@ -64,7 +62,6 @@ function validate() {
     if (!Number.isInteger(Number(item.quantity)) || Number(item.quantity) < 1) errors.push(`${label}: số lượng phải là số nguyên lớn hơn 0.`)
     if (!Number.isFinite(Number(item.purchasePrice)) || Number(item.purchasePrice) < 0) errors.push(`${label}: giá nhập không hợp lệ.`)
     if (!Number.isFinite(Number(item.salePrice)) || Number(item.salePrice) < 0) errors.push(`${label}: giá bán không hợp lệ.`)
-    if (!String(item.purchaseLocation || '').trim()) errors.push(`${label}: nơi nhập không được để trống.`)
   })
   formErrors.value = errors
   return !errors.length
@@ -143,14 +140,13 @@ onMounted(async () => {
             <button type="button" class="icon-button danger-text" title="Xóa khỏi đơn" @click="removeItem(index)">×</button>
           </div>
           <div class="order-item-editor__body">
-            <ProductImage :src="item.productImageUrl" :alt="item.productName" />
             <div class="form-grid form-grid--items">
               <label class="field field--wide">
                 <span>Chọn sản phẩm <b>*</b></span>
                 <select v-model="item.productId" required @change="selectProduct(item)">
                   <option value="" disabled>Chọn từ danh mục</option>
                   <option v-if="item.productId && !products.some(product => product.id === item.productId)" :value="item.productId" disabled>{{ item.productName }} (đã xóa)</option>
-                  <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}</option>
+                  <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}{{ product.productCategoryName ? ` (${product.productCategoryName})` : '' }}</option>
                 </select>
               </label>
               <label class="field">
@@ -166,8 +162,8 @@ onMounted(async () => {
                 <input v-model.number="item.salePrice" type="number" min="0" step="1000" required />
               </label>
               <label class="field">
-                <span>Nơi nhập thực tế <b>*</b></span>
-                <input v-model.trim="item.purchaseLocation" required />
+                <span>Nơi nhập thực tế</span>
+                <input v-model.trim="item.purchaseLocation" />
               </label>
             </div>
           </div>

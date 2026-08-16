@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import LoadingState from '../components/common/LoadingState.vue'
-import ProductImage from '../components/common/ProductImage.vue'
 import StatusBadge from '../components/orders/StatusBadge.vue'
 import StatusProgress from '../components/orders/StatusProgress.vue'
 import { useNotification } from '../composables/useNotification'
@@ -83,8 +82,8 @@ onMounted(loadOrder)
 
     <section class="panel">
       <div class="section-heading"><div><p class="eyebrow">Sản phẩm</p><h2>{{ order.items.length }} loại sản phẩm</h2></div></div>
-      <div class="table-wrap desktop-only"><table><thead><tr><th>Ảnh</th><th>Sản phẩm</th><th>SL</th><th>Giá nhập</th><th>Giá bán</th><th>Nơi nhập</th><th>Tổng vốn</th><th>Doanh thu</th><th>Lợi nhuận</th></tr></thead><tbody><tr v-for="item in order.items" :key="item.id"><td><ProductImage :src="item.productImageUrl" :alt="item.productName" /></td><td><strong>{{ item.productName }}</strong></td><td>{{ item.quantity }}</td><td>{{ formatCurrency(item.purchasePrice) }}</td><td>{{ formatCurrency(item.salePrice) }}</td><td>{{ item.purchaseLocation }}</td><td>{{ formatCurrency(item.lineCost) }}</td><td>{{ formatCurrency(item.lineRevenue) }}</td><td><strong class="profit-text">{{ formatCurrency(item.lineProfit) }}</strong></td></tr></tbody></table></div>
-      <div class="mobile-cards mobile-only"><article v-for="item in order.items" :key="item.id" class="mobile-card order-product-card"><div class="order-product-card__heading"><ProductImage :src="item.productImageUrl" :alt="item.productName" /><div><h3>{{ item.productName }}</h3><p>{{ item.quantity }} × {{ formatCurrency(item.salePrice) }}</p></div></div><p>{{ item.purchaseLocation }}</p><dl><div><dt>Vốn</dt><dd>{{ formatCurrency(item.lineCost) }}</dd></div><div><dt>Doanh thu</dt><dd>{{ formatCurrency(item.lineRevenue) }}</dd></div><div><dt>Lợi nhuận</dt><dd class="profit-text">{{ formatCurrency(item.lineProfit) }}</dd></div></dl></article></div>
+      <div class="table-wrap desktop-only"><table><thead><tr><th>Sản phẩm</th><th>SL</th><th>Giá nhập</th><th>Giá bán</th><th>Nơi nhập</th><th>Tổng vốn</th><th>Doanh thu</th><th>Lợi nhuận</th></tr></thead><tbody><tr v-for="item in order.items" :key="item.id"><td><strong>{{ item.productName }}</strong></td><td>{{ item.quantity }}</td><td>{{ formatCurrency(item.purchasePrice) }}</td><td>{{ formatCurrency(item.salePrice) }}</td><td>{{ item.purchaseLocation || '—' }}</td><td>{{ formatCurrency(item.lineCost) }}</td><td>{{ formatCurrency(item.lineRevenue) }}</td><td><strong class="profit-text">{{ formatCurrency(item.lineProfit) }}</strong></td></tr></tbody></table></div>
+      <div class="mobile-cards mobile-only"><article v-for="item in order.items" :key="item.id" class="mobile-card order-product-card"><div class="order-product-card__heading"><div><h3>{{ item.productName }}</h3><p>{{ item.quantity }} × {{ formatCurrency(item.salePrice) }}</p></div></div><p>{{ item.purchaseLocation || '—' }}</p><dl><div><dt>Vốn</dt><dd>{{ formatCurrency(item.lineCost) }}</dd></div><div><dt>Doanh thu</dt><dd>{{ formatCurrency(item.lineRevenue) }}</dd></div><div><dt>Lợi nhuận</dt><dd class="profit-text">{{ formatCurrency(item.lineProfit) }}</dd></div></dl></article></div>
     </section>
 
     <section class="order-totals order-totals--detail"><div><span>Tổng vốn</span><strong>{{ formatCurrency(order.totalCost) }}</strong></div><div><span>Tổng doanh thu</span><strong>{{ formatCurrency(order.totalRevenue) }}</strong></div><div class="profit"><span>Tổng lợi nhuận</span><strong>{{ formatCurrency(order.totalProfit) }}</strong></div></section>
