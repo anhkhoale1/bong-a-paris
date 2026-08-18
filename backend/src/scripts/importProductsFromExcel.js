@@ -1,9 +1,11 @@
-import 'dotenv/config'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import xlsx from 'xlsx'
+import { loadEnv } from '../config/loadEnv.js'
 import { createDatabasePool } from '../database/client.js'
+
+loadEnv()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const defaultWorkbookPath = path.resolve(__dirname, '../../data/bong-a-paris-data.xlsx')

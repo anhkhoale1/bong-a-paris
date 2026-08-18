@@ -6,7 +6,7 @@
 
 - Frontend: Vue 3, Composition API, Vue Router và Vite.
 - Backend: Node.js, Express.
-- Lưu trữ: file JSON với thao tác ghi nguyên tử và hàng đợi ghi tuần tự.
+- Lưu trữ: PostgreSQL cho production/pre-prod, có migration SQL tuần tự.
 - Kiểm thử: Vitest và Supertest.
 
 ## Chức năng chính
@@ -33,20 +33,21 @@ vue-sales-manager/
 │       ├── utils/          # Định dạng tiền, ngày và trạng thái
 │       └── views/          # Dashboard và các trang CRUD
 └── backend/
-    ├── data/               # products.json và orders.json
+    ├── migrations/         # SQL migrations cho PostgreSQL
     ├── test/               # Kiểm thử API
     └── src/
         ├── controllers/    # Nhận request và trả response
-        ├── data/           # Dữ liệu mẫu dùng khi chưa có file JSON
+        ├── database/       # Kết nối PostgreSQL và chạy migration
         ├── middleware/     # Xử lý lỗi
         ├── models/         # Trạng thái đơn hàng
-        ├── repositories/   # Truy cập dữ liệu JSON
+        ├── repositories/   # Repository PostgreSQL và fallback JSON cho test/local
         ├── routes/         # Định nghĩa REST API
+        ├── scripts/        # Script migrate và import dữ liệu
         ├── services/       # Validation và nghiệp vụ
-        └── utils/          # JSON store và tiện ích lỗi
+        └── utils/          # Tiện ích dùng chung
 ```
 
-Controller không đọc hoặc ghi file trực tiếp. Repository là lớp duy nhất truy cập dữ liệu, vì vậy có thể thay bằng PostgreSQL hoặc MySQL mà không cần thay đổi route và controller.
+Controller không đọc hoặc ghi dữ liệu trực tiếp. Repository là lớp duy nhất truy cập dữ liệu, nên logic route/controller được giữ ổn định khi chạy PostgreSQL hoặc fallback nội bộ cho test.
 
 ## Yêu cầu
 
@@ -69,17 +70,35 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
+Để tách môi trường `pre-prod`, có thể tạo file env riêng:
+
+```bash
+cp backend/.env.preprod.example backend/.env.preprod
+cp frontend/.env.preprod.example frontend/.env.preprod
+```
+
 Backend hỗ trợ:
 
 ```env
 PORT=3000
 FRONTEND_URL=http://localhost:5173
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-this-password
+JWT_SECRET=replace-with-at-least-32-random-characters
 ```
 
 Frontend hỗ trợ:
 
 ```env
 VITE_API_URL=http://localhost:3000/api
+```
+
+Backend hỗ trợ nạp file env tùy chọn qua `ENV_FILE`. Ví dụ chạy backend hoặc migration bằng cấu hình `pre-prod`:
+
+```bash
+ENV_FILE=backend/.env.preprod npm run start --prefix backend
+ENV_FILE=backend/.env.preprod npm run migrate --prefix backend
 ```
 
 ## Chạy development
@@ -114,6 +133,33 @@ npm test
 ```
 
 `npm run build` tạo bản frontend production trong `frontend/dist`. Backend hiện không phục vụ thư mục này; khi triển khai cần host static frontend riêng và cấu hình `VITE_API_URL`/`FRONTEND_URL` tương ứng.
+
+## Admin test và pre-prod
+
+Ứng dụng hiện dùng một tài khoản admin lấy trực tiếp từ biến môi trường, chưa có bảng `users`. Vì vậy cách đơn giản nhất để có admin test là cấu hình riêng cho từng môi trường:
+
+```env
+ADMIN_EMAIL=admin-preprod@example.com
+ADMIN_PASSWORD=a-strong-preprod-password
+JWT_SECRET=a-different-preprod-secret-with-32-plus-characters
+```
+
+Với hạ tầng Cloudflare + Neon + Render, flow khuyến nghị:
+
+1. Tạo một database riêng trên Neon cho `pre-prod`, ví dụ `bong_a_paris_preprod`.
+2. Điền connection string đó vào `backend/.env.preprod` hoặc biến môi trường của service pre-prod trên Render.
+3. Cấu hình `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `JWT_SECRET` riêng cho pre-prod.
+4. Chạy migration vào DB pre-prod trước:
+
+```bash
+ENV_FILE=backend/.env.preprod npm run migrate --prefix backend
+```
+
+5. Sau khi migration ổn, deploy backend pre-prod trên Render với đúng bộ biến môi trường đó.
+6. Cấu hình frontend pre-prod trên Cloudflare trỏ `VITE_API_URL` về backend pre-prod.
+7. Khi đã xác nhận ổn, mới chạy migration/deploy cho production.
+
+Lợi ích của flow này là migration luôn được kiểm tra trên một DB Neon tách biệt trước khi chạm vào production.
 
 ## Frontend routes
 
@@ -239,15 +285,14 @@ totalProfit = totalRevenue - totalCost
 
 ## Lưu trữ dữ liệu
 
-- Dữ liệu nằm trong `backend/data/products.json` và `backend/data/orders.json`.
-- Nếu file chưa tồn tại, backend tự tạo từ dữ liệu mẫu trong `backend/src/data/seedData.js`.
-- Ghi dữ liệu thông qua file tạm rồi đổi tên để tránh file JSON bị ghi dở.
-- Các thao tác thay đổi dữ liệu trong một tiến trình backend được đưa vào hàng đợi để tránh nhiều request ghi đè nhau.
+- Dữ liệu chạy trên PostgreSQL qua `DATABASE_URL`.
+- Migration nằm trong `backend/migrations/*.sql`.
+- Backend tự chạy migration khi khởi động và cũng có thể chạy thủ công bằng `npm run migrate --prefix backend`.
+- Repository JSON cũ vẫn còn trong codebase để phục vụ test và fallback nội bộ, nhưng môi trường deploy nên dùng PostgreSQL.
 
 ## Hạn chế hiện tại
 
-- Chưa có đăng nhập và phân quyền.
-- JSON phù hợp cho một tiến trình backend và quy mô nhỏ; chưa phù hợp với nhiều server cùng ghi dữ liệu.
+- Chỉ hỗ trợ một tài khoản admin cấu hình qua biến môi trường.
 - Chưa có quản lý tồn kho, thanh toán, hủy đơn hoặc lịch sử từng lần đổi trạng thái.
 - Dashboard tổng hợp giá trị của tất cả đơn, bao gồm cả đơn chưa hoàn thành.
 - Chưa có phân trang khi số lượng sản phẩm và đơn hàng lớn.
@@ -255,8 +300,7 @@ totalProfit = totalRevenue - totalCost
 
 ## Hướng phát triển
 
-- Chuyển repository sang PostgreSQL/MySQL và thêm migration.
-- Thêm JWT, tài khoản và phân quyền nhân viên/quản trị.
+- Thêm bảng `users` nếu cần nhiều tài khoản admin/nhân viên thay vì chỉ dùng env.
 - Thêm lịch sử trạng thái, hủy/hoàn tiền và quản lý thanh toán.
 - Thêm upload ảnh, phân trang, export Excel/PDF và báo cáo nâng cao.
 - Bổ sung kiểm thử frontend và kiểm thử end-to-end.

@@ -1,6 +1,8 @@
-import 'dotenv/config'
+import { loadEnv } from '../config/loadEnv.js'
 import { createDatabasePool } from '../database/client.js'
 import { migrateDatabase } from '../database/migrate.js'
+
+loadEnv()
 
 const pool = createDatabasePool()
 
