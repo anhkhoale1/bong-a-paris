@@ -1,21 +1,21 @@
-import { loadEnv } from '../config/loadEnv.js'
-import { createDatabasePool } from '../database/client.js'
-import { migrateDatabase } from '../database/migrate.js'
+import { loadEnv } from "../config/loadEnv.js";
+import { createDatabasePool } from "../database/client.js";
+import { migrateDatabase } from "../database/migrate.js";
 
-loadEnv()
+loadEnv();
 
-const pool = createDatabasePool()
+const pool = createDatabasePool();
 
 async function main() {
   try {
-    await migrateDatabase(pool)
-    console.log('Database migrations applied successfully.')
+    await migrateDatabase(pool);
+    console.log("Database migrations applied successfully.");
   } finally {
-    await pool.end().catch(() => {})
+    await pool.end().catch(() => {});
   }
 }
 
-main().catch(error => {
-  console.error('Failed to apply database migrations:', error)
-  process.exitCode = 1
-})
+main().catch((error) => {
+  console.error("Failed to apply database migrations:", error);
+  process.exitCode = 1;
+});

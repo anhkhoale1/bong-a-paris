@@ -53,6 +53,7 @@ Controller không đọc hoặc ghi dữ liệu trực tiếp. Repository là l�
 
 - Node.js `20.19+` hoặc `22.12+`; khuyến nghị dùng bản LTS hiện hành.
 - npm.
+- Docker Desktop, nếu muốn chạy PostgreSQL local bằng Docker Compose.
 
 ## Cài đặt
 
@@ -76,6 +77,16 @@ cp frontend/.env.example frontend/.env
 cp backend/.env.preprod.example backend/.env.preprod
 cp frontend/.env.preprod.example frontend/.env.preprod
 ```
+
+Để chạy PostgreSQL local bằng Docker:
+
+```bash
+cp backend/.env.local.example backend/.env.local
+npm run db:local:up
+npm run migrate:local
+```
+
+File `backend/.env.local` dùng PostgreSQL local tại port `5433`, hoàn toàn tách khỏi Neon production và pre-prod.
 
 Backend hỗ trợ:
 
@@ -125,6 +136,18 @@ Chạy riêng frontend:
 npm run dev --prefix frontend
 ```
 
+Chạy cả frontend và backend với PostgreSQL local:
+
+```bash
+npm run dev:local
+```
+
+Tắt PostgreSQL local khi không dùng:
+
+```bash
+npm run db:local:down
+```
+
 ## Build và test
 
 Kiểm tra backend bằng automated tests:
@@ -171,7 +194,7 @@ Frontend local mặc định gọi `http://localhost:3000/api` theo `frontend/.e
 
 ### Deploy frontend bằng CLI
 
-Đứng tại thư mục `frontend` và đảm bảo đã đăng nhập Cloudflare:
+Đứng tại thư mục root của project và đảm bảo đã đăng nhập Cloudflare:
 
 ```bash
 npx wrangler login
@@ -181,14 +204,14 @@ Deploy production:
 
 ```bash
 npm run build
-npx wrangler deploy
+npx wrangler deploy --config frontend/wrangler.jsonc
 ```
 
 Deploy `pre-prod`:
 
 ```bash
 npm run build:preprod
-npx wrangler deploy --env preprod
+npx wrangler deploy --config frontend/wrangler.jsonc --env preprod
 ```
 
 Worker production là `bong-a-paris`; Worker `pre-prod` là `bong-a-paris-preprod`, theo cấu hình trong `frontend/wrangler.jsonc`.
@@ -229,10 +252,31 @@ npm run build:preprod
 Sau đó:
 
 1. Deploy backend `pre-prod` thủ công trên Render.
-2. Deploy Worker `pre-prod` bằng `npx wrangler deploy --env preprod`.
+2. Deploy Worker `pre-prod` bằng `npx wrangler deploy --config frontend/wrangler.jsonc --env preprod`.
 3. Test login, product, order, dashboard và kiểm tra dữ liệu trong Neon branch `pre-prod`.
 4. Khi ổn, deploy production backend trên Render.
-5. Deploy Worker production bằng `npx wrangler deploy`.
+5. Deploy Worker production bằng `npx wrangler deploy --config frontend/wrangler.jsonc`.
+
+## Test migration trên database local
+
+Quy trình khuyến nghị trước khi push code:
+
+```bash
+npm run db:local:up
+npm run migrate:local
+npm test
+npm run build
+```
+
+Sau đó chạy app local:
+
+```bash
+npm run dev:local
+```
+
+Kiểm tra frontend tại `http://localhost:5173` và backend tại `http://localhost:3000`. Khi thêm migration mới, chạy lại `npm run migrate:local`; migration đã áp dụng sẽ được bỏ qua bởi bảng `schema_migrations`.
+
+`npm run db:local:down` chỉ dừng container và giữ lại dữ liệu trong Docker volume. Không dùng `docker compose down -v` trừ khi muốn xóa toàn bộ database local.
 
 ## Admin test và pre-prod
 
@@ -263,16 +307,16 @@ Lợi ích của flow này là migration luôn được kiểm tra trên một D
 
 ## Frontend routes
 
-| Đường dẫn | Chức năng |
-|---|---|
-| `/` | Dashboard |
-| `/products` | Danh sách sản phẩm |
-| `/products/create` | Thêm sản phẩm |
-| `/products/:id/edit` | Sửa sản phẩm |
-| `/orders` | Danh sách đơn hàng |
-| `/orders/create` | Tạo đơn hàng |
-| `/orders/:id` | Chi tiết và cập nhật trạng thái |
-| `/orders/:id/edit` | Sửa đơn hàng |
+| Đường dẫn            | Chức năng                       |
+| -------------------- | ------------------------------- |
+| `/`                  | Dashboard                       |
+| `/products`          | Danh sách sản phẩm              |
+| `/products/create`   | Thêm sản phẩm                   |
+| `/products/:id/edit` | Sửa sản phẩm                    |
+| `/orders`            | Danh sách đơn hàng              |
+| `/orders/create`     | Tạo đơn hàng                    |
+| `/orders/:id`        | Chi tiết và cập nhật trạng thái |
+| `/orders/:id/edit`   | Sửa đơn hàng                    |
 
 ## REST API
 
@@ -303,13 +347,13 @@ Response lỗi validation:
 
 ### Product API
 
-| Method | API | Chức năng |
-|---|---|---|
-| `GET` | `/api/products` | Danh sách sản phẩm |
-| `GET` | `/api/products/:id` | Chi tiết sản phẩm |
-| `POST` | `/api/products` | Tạo sản phẩm |
-| `PUT` | `/api/products/:id` | Cập nhật sản phẩm |
-| `DELETE` | `/api/products/:id` | Xóa sản phẩm |
+| Method   | API                 | Chức năng          |
+| -------- | ------------------- | ------------------ |
+| `GET`    | `/api/products`     | Danh sách sản phẩm |
+| `GET`    | `/api/products/:id` | Chi tiết sản phẩm  |
+| `POST`   | `/api/products`     | Tạo sản phẩm       |
+| `PUT`    | `/api/products/:id` | Cập nhật sản phẩm  |
+| `DELETE` | `/api/products/:id` | Xóa sản phẩm       |
 
 Query danh sách:
 
@@ -319,14 +363,14 @@ GET /api/products?search=tui&purchaseLocation=Taobao
 
 ### Order API
 
-| Method | API | Chức năng |
-|---|---|---|
-| `GET` | `/api/orders` | Danh sách đơn hàng |
-| `GET` | `/api/orders/:id` | Chi tiết đơn hàng |
-| `POST` | `/api/orders` | Tạo đơn hàng |
-| `PUT` | `/api/orders/:id` | Cập nhật đơn hàng |
-| `PATCH` | `/api/orders/:id/status` | Cập nhật trạng thái |
-| `DELETE` | `/api/orders/:id` | Xóa đơn hàng |
+| Method   | API                      | Chức năng           |
+| -------- | ------------------------ | ------------------- |
+| `GET`    | `/api/orders`            | Danh sách đơn hàng  |
+| `GET`    | `/api/orders/:id`        | Chi tiết đơn hàng   |
+| `POST`   | `/api/orders`            | Tạo đơn hàng        |
+| `PUT`    | `/api/orders/:id`        | Cập nhật đơn hàng   |
+| `PATCH`  | `/api/orders/:id/status` | Cập nhật trạng thái |
+| `DELETE` | `/api/orders/:id`        | Xóa đơn hàng        |
 
 Query danh sách:
 
@@ -353,13 +397,13 @@ API trả tổng hợp đơn hàng, tài chính, số đơn theo trạng thái, 
 
 ## Trạng thái đơn hàng
 
-| Giá trị | Hiển thị |
-|---|---|
-| `PURCHASED` | Đã mua |
-| `SHIPPED_TO_VIETNAM` | Đã gửi vận chuyển |
-| `ARRIVED_IN_VIETNAM` | Đã đến Việt Nam |
-| `OUT_FOR_DELIVERY` | Đang trên đường giao |
-| `COMPLETED` | Hoàn thành |
+| Giá trị              | Hiển thị             |
+| -------------------- | -------------------- |
+| `PURCHASED`          | Đã mua               |
+| `SHIPPED_TO_VIETNAM` | Đã gửi vận chuyển    |
+| `ARRIVED_IN_VIETNAM` | Đã đến Việt Nam      |
+| `OUT_FOR_DELIVERY`   | Đang trên đường giao |
+| `COMPLETED`          | Hoàn thành           |
 
 Luồng mặc định:
 

@@ -7,6 +7,7 @@ services:
     rootDir: backend
     buildCommand: npm ci
     startCommand: npm start
+    autoDeployTrigger: "off"
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
@@ -27,6 +28,7 @@ services:
     rootDir: backend
     buildCommand: npm ci
     startCommand: npm start
+    autoDeployTrigger: "off"
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL

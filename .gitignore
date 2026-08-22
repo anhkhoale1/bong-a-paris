@@ -12,3 +12,4 @@ frontend/.env.*
 *.log
 .DS_Store
 todo.txt
+AGENTS.md

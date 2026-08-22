@@ -1,5 +1,5 @@
-import { apiClient } from './apiClient'
+import { apiClient } from "./apiClient";
 
 export const dashboardService = {
-  summary: () => apiClient('/dashboard/summary')
-}
+  summary: () => apiClient("/dashboard/summary"),
+};
