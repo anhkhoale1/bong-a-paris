@@ -14,7 +14,7 @@
     "build": "npm run build --prefix frontend",
     "test": "npm run test --prefix backend",
     "deploy:frontend:preprod": "npm test && npm run build:preprod && npx wrangler deploy --config frontend/wrangler.jsonc --env preprod",
-    "deploy:frontend:prod": "npm test && npm run build && npx wrangler deploy --config frontend/wrangler.jsonc",
+    "deploy:frontend:prod": "npm test && npm run build && npx wrangler deploy --config frontend/wrangler.jsonc --env production",
     "deploy:preprod": "npm run deploy:frontend:preprod",
     "deploy:prod": "npm run deploy:frontend:prod"
   },

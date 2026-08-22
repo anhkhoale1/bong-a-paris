@@ -7,6 +7,9 @@
     "not_found_handling": "single-page-application"
   },
   "env": {
+    "production": {
+      "name": "bong-a-paris"
+    },
     "preprod": {
       "name": "bong-a-paris-preprod"
     }

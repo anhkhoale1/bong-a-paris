@@ -1,6 +1,10 @@
 import { clearAuthToken, getAuthToken } from "./authToken.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? "https://bong-a-paris-api.onrender.com/api"
+    : "http://localhost:3000/api");
 
 export class ApiError extends Error {
   constructor(message, errors = [], status = 500) {
