@@ -12,7 +12,11 @@
     "migrate:preprod": "ENV_FILE=backend/.env.preprod npm run migrate --prefix backend",
     "build:preprod": "npm run migrate:preprod && npm run build:preprod --prefix frontend",
     "build": "npm run build --prefix frontend",
-    "test": "npm run test --prefix backend"
+    "test": "npm run test --prefix backend",
+    "deploy:frontend:preprod": "npm test && npm run build:preprod && npx wrangler deploy --config frontend/wrangler.jsonc --env preprod",
+    "deploy:frontend:prod": "npm test && npm run build && npx wrangler deploy --config frontend/wrangler.jsonc",
+    "deploy:preprod": "npm run deploy:frontend:preprod",
+    "deploy:prod": "npm run deploy:frontend:prod"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
