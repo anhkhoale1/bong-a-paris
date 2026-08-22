@@ -11,3 +11,4 @@ frontend/.env.*
 !frontend/.env*.example
 *.log
 .DS_Store
+todo.txt

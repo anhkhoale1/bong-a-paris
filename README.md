@@ -127,12 +127,112 @@ npm run dev --prefix frontend
 
 ## Build và test
 
+Kiểm tra backend bằng automated tests:
+
 ```bash
-npm run build
 npm test
 ```
 
-`npm run build` tạo bản frontend production trong `frontend/dist`. Backend hiện không phục vụ thư mục này; khi triển khai cần host static frontend riêng và cấu hình `VITE_API_URL`/`FRONTEND_URL` tương ứng.
+Build frontend production:
+
+```bash
+npm run build
+```
+
+Build frontend dùng cấu hình `pre-prod`:
+
+```bash
+npm run build:preprod
+```
+
+Lệnh này chạy migration vào Neon `pre-prod`, sau đó build frontend bằng `frontend/.env.preprod`. `npm run build` chỉ build frontend production và không chạy migration.
+
+Frontend build nằm trong `frontend/dist`. Backend không phục vụ thư mục này; frontend được deploy riêng trên Cloudflare Workers.
+
+## Chạy và deploy thủ công
+
+Push code lên Git không bắt buộc phải deploy ngay. Có thể tắt auto-deploy trên Render và Cloudflare, sau đó chạy deploy thủ công khi cần.
+
+### Chạy local
+
+Chạy cả backend và frontend:
+
+```bash
+npm run dev
+```
+
+Chạy backend local với Neon `pre-prod`:
+
+```bash
+ENV_FILE=backend/.env.preprod npm run dev --prefix backend
+```
+
+Frontend local mặc định gọi `http://localhost:3000/api` theo `frontend/.env`. Khi cần gọi backend pre-prod, đặt `VITE_API_URL` trong file env tương ứng rồi chạy Vite với mode phù hợp.
+
+### Deploy frontend bằng CLI
+
+Đứng tại thư mục `frontend` và đảm bảo đã đăng nhập Cloudflare:
+
+```bash
+npx wrangler login
+```
+
+Deploy production:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+Deploy `pre-prod`:
+
+```bash
+npm run build:preprod
+npx wrangler deploy --env preprod
+```
+
+Worker production là `bong-a-paris`; Worker `pre-prod` là `bong-a-paris-preprod`, theo cấu hình trong `frontend/wrangler.jsonc`.
+
+Nếu chạy lệnh từ thư mục root, dùng:
+
+```bash
+npm run build
+npx wrangler deploy --config frontend/wrangler.jsonc
+```
+
+### Deploy backend thủ công trên Render
+
+Render thường được điều khiển thuận tiện nhất từ Dashboard:
+
+1. Mở service backend production hoặc `pre-prod`.
+2. Vào **Settings** và tắt **Auto-Deploy** nếu không muốn push code là deploy.
+3. Khi muốn deploy, chọn **Manual Deploy** → **Deploy latest commit**.
+4. Kiểm tra log build/start và endpoint `/api/health`.
+
+Render sẽ chạy `npm ci`, sau đó `npm start`. Backend tự chạy migration khi khởi động bằng `DATABASE_URL` của service đó.
+
+Nếu muốn kích hoạt Render từ CLI, có thể tạo **Deploy Hook** trong Render rồi gọi URL hook:
+
+```bash
+curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+```
+
+Không commit deploy hook URL vào repository; hãy lưu nó trong biến môi trường local.
+
+### Quy trình release thủ công khuyến nghị
+
+```bash
+npm test
+npm run build:preprod
+```
+
+Sau đó:
+
+1. Deploy backend `pre-prod` thủ công trên Render.
+2. Deploy Worker `pre-prod` bằng `npx wrangler deploy --env preprod`.
+3. Test login, product, order, dashboard và kiểm tra dữ liệu trong Neon branch `pre-prod`.
+4. Khi ổn, deploy production backend trên Render.
+5. Deploy Worker production bằng `npx wrangler deploy`.
 
 ## Admin test và pre-prod
 
