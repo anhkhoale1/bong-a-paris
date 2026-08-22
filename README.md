@@ -92,8 +92,10 @@ Backend hỗ trợ:
 
 ```env
 PORT=3000
-FRONTEND_URL=http://localhost:5173
-DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+# Find the exact frontend origin from your local dev server or deployment dashboard.
+FRONTEND_URL=your-frontend-origin
+# Find this connection string in your PostgreSQL provider or local Docker setup.
+DATABASE_URL=your-postgres-connection-string
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-this-password
 JWT_SECRET=replace-with-at-least-32-random-characters
@@ -102,7 +104,8 @@ JWT_SECRET=replace-with-at-least-32-random-characters
 Frontend hỗ trợ:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+# Find the API base URL in the backend environment/deployment dashboard.
+VITE_API_URL=your-api-base-url
 ```
 
 Backend hỗ trợ nạp file env tùy chọn qua `ENV_FILE`. Ví dụ chạy backend hoặc migration bằng cấu hình `pre-prod`:
@@ -120,9 +123,9 @@ Chạy đồng thời frontend và backend:
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
-- Health check: http://localhost:3000/api/health
+- Frontend: use the URL printed by the Vite dev server.
+- Backend: use the host and port configured in the backend environment.
+- Health check: append `/api/health` to the backend base URL.
 
 Chạy riêng backend:
 
@@ -190,7 +193,7 @@ Chạy backend local với Neon `pre-prod`:
 ENV_FILE=backend/.env.preprod npm run dev --prefix backend
 ```
 
-Frontend local mặc định gọi `http://localhost:3000/api` theo `frontend/.env`. Khi cần gọi backend pre-prod, đặt `VITE_API_URL` trong file env tương ứng rồi chạy Vite với mode phù hợp.
+Frontend local đọc API base URL từ `frontend/.env`. Khi cần gọi backend pre-prod, đặt `VITE_API_URL` trong file env tương ứng rồi chạy Vite với mode phù hợp.
 
 ### Deploy frontend bằng CLI
 
@@ -274,7 +277,7 @@ Sau đó chạy app local:
 npm run dev:local
 ```
 
-Kiểm tra frontend tại `http://localhost:5173` và backend tại `http://localhost:3000`. Khi thêm migration mới, chạy lại `npm run migrate:local`; migration đã áp dụng sẽ được bỏ qua bởi bảng `schema_migrations`.
+Kiểm tra frontend và backend tại các địa chỉ được in ra bởi dev server. Khi thêm migration mới, chạy lại `npm run migrate:local`; migration đã áp dụng sẽ được bỏ qua bởi bảng `schema_migrations`.
 
 `npm run db:local:down` chỉ dừng container và giữ lại dữ liệu trong Docker volume. Không dùng `docker compose down -v` trừ khi muốn xóa toàn bộ database local.
 

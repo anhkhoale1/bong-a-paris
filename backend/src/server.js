@@ -12,7 +12,7 @@ async function start() {
   await migrateDatabase(pool);
   const app = createApp({ pool });
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Backend đang chạy tại http://localhost:${PORT}`);
+    console.log(`Backend đang chạy trên port ${PORT}`);
   });
 }
 
