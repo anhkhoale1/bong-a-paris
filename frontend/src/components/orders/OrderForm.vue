@@ -140,16 +140,19 @@ function filteredProducts(index) {
 
 function selectProduct(item, product) {
   if (!product) return;
+  const itemIndex = form.items.indexOf(item);
   item.productId = product.id;
-  productPickerSearch[form.items.indexOf(item)] = product.name || product.id;
-  productPickerCategory[form.items.indexOf(item)] =
-    product.productCategoryName || "";
+  productPickerSearch[itemIndex] = product.name || product.id;
+  productPickerCategory[itemIndex] = product.productCategoryName || "";
   Object.assign(item, {
     productName: product.name,
     purchasePrice: product.defaultPurchasePrice,
     salePrice: product.defaultSalePrice,
     purchaseLocation: product.purchaseLocation,
   });
+  formErrors.value = formErrors.value.filter(
+    (error) => error !== `Sản phẩm ${itemIndex + 1}: hãy chọn sản phẩm.`,
+  );
   activeProductPicker.value = null;
 }
 

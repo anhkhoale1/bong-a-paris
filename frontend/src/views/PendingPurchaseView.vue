@@ -63,7 +63,9 @@ onMounted(loadOrders);
     <RouterLink
       class="inline-flex min-h-[42px] cursor-pointer items-center justify-center rounded-[10px] border border-[#c7c0ff] bg-[#e9e5ff] px-4 py-2.5 font-bold text-[#4f46b5] transition hover:-translate-y-px hover:bg-[#ddd8ff] max-[600px]:w-full"
       to="/orders"
-      >Xem tất cả đơn hàng</RouterLink
+      >
+      Xem tất cả đơn hàng
+    </RouterLink
     >
   </div>
 
